@@ -312,6 +312,7 @@ class XMODEM(object):
                     filename = ''
                     data = ''
                     stream = None
+                    self.log.info('Transmission successful.')
                     self.log.debug('ymodem done, sending empty header.')
                 if len(data) <= 128:
                     header_size = 128
@@ -376,27 +377,33 @@ class XMODEM(object):
 
         # emit EOT and get corresponding ACK
         while True:
-            self.log.debug('sending EOT, awaiting ACK')
+            self.log.debug('sending EOT, awaiting ACK (xmodem) or NAK (ymodem)')
             # end of transmission
             self.putc(EOT)
 
             # An ACK should be returned
             char = self.getc(1, timeout)
 
-            if char == NAK:
-                self.putc(EOT)
-                char = self.getc(1, timeout)
+            if self.mode == 'xmodem':
                 if char == ACK:
                     break
-            else:
-                self.log.error('send error: expected ACK; got %r', char)
-                error_count += 1
-                if error_count > retry:
-                    self.log.warn('EOT was not ACKd, aborting transfer')
-                    self.abort(timeout=timeout)
-                    return False
+            elif self.mode == 'ymodem':
+                if char == NAK:
+                    self.putc(EOT)
+                    char = self.getc(1, timeout)
+                    if char == ACK:
+                        break
 
-        self.log.info('Transmission successful (ACK received).')
+            self.log.error('send error: expected ACK or NAK; got %r', char)
+            error_count += 1
+            if error_count > retry:
+                self.log.warn('EOT was not ACKd, aborting transfer')
+                self.abort(timeout=timeout)
+                return False
+
+        if self.mode == 'xmodem':
+            self.log.info('Transmission successful.')
+
         if self.mode == 'ymodem':
             # YMODEM - recursively send next file
             # or empty filename header to end the xfer batch.
