@@ -201,7 +201,7 @@ class XMODEM(object):
         self.pad = pad
         self.log = logging.getLogger('xmodem.XMODEM')
 
-    def abort(self, count=2, timeout=60):
+    def abort(self, count=10, timeout=60):
         '''
         Send an abort sequence using CAN bytes.
         '''
@@ -382,8 +382,12 @@ class XMODEM(object):
 
             # An ACK should be returned
             char = self.getc(1, timeout)
-            if char == ACK:
-                break
+
+            if char == NAK:
+                self.putc(EOT)
+                char = self.getc(1, timeout)
+                if char == ACK:
+                    break
             else:
                 self.log.error('send error: expected ACK; got %r', char)
                 error_count += 1
