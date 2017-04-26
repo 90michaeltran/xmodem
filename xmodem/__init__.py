@@ -341,7 +341,10 @@ class XMODEM(object):
             # emit packet & get ACK
             while True:
                 self.log.debug('send: block %d', sequence)
-                self.putc(bytearray(header + data + checksum, 'utf-8'))
+                logger.info('header: %s' % type(header))
+                logger.info('data: %s' % type(data))
+                logger.info('checksum: %s' % type(checksum))
+                self.putc(header + data + checksum)
                 char = self.getc(1, timeout)
                 if char == ACK:
                     success_count += 1
@@ -600,7 +603,7 @@ class XMODEM(object):
 
     def _verify_recv_checksum(self, crc_mode, data):
         if crc_mode:
-            _checksum = bytearray(data[-2:], 'utf-8')
+            _checksum = bytearray(data[-2:])
             their_sum = (_checksum[0] << 8) + _checksum[1]
             data = data[:-2]
 
@@ -611,7 +614,7 @@ class XMODEM(object):
                               '(theirs=%04x, ours=%04x), ',
                               their_sum, our_sum)
         else:
-            _checksum = bytearray([data[-1]], 'utf-8')
+            _checksum = bytearray([data[-1]])
             their_sum = _checksum[0]
             data = data[:-1]
 
