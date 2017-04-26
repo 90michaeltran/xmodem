@@ -341,9 +341,9 @@ class XMODEM(object):
             # emit packet & get ACK
             while True:
                 self.log.debug('send: block %d', sequence)
-                logger.info('header: %s' % type(header))
-                logger.info('data: %s' % type(data))
-                logger.info('checksum: %s' % type(checksum))
+                self.log.info('header: %s' % type(header))
+                self.log.info('data: %s' % type(data))
+                self.log.info('checksum: %s' % type(checksum))
                 self.putc(header + data + checksum)
                 char = self.getc(1, timeout)
                 if char == ACK:
