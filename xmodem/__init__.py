@@ -654,7 +654,7 @@ class XMODEM(object):
             '0xd5e3'
 
         '''
-        for char in bytearray(data, 'utf-8'):
+        for char in data:
             crctbl_idx = ((crc >> 8) ^ char) & 0xff
             crc = ((crc << 8) ^ self.crctable[crctbl_idx]) & 0xffff
         return crc & 0xffff
