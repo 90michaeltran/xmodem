@@ -306,7 +306,7 @@ class XMODEM(object):
                     filename = filenames.pop()
                     stream = open(filename, 'rb')
                     stat = os.stat(filename)
-                    data = bytearray(os.path.basename(filename) + NUL + str(stat.st_size))
+                    data = bytearray(os.path.basename(filename) + NUL + str(stat.st_size), 'utf-8')
                     self.log.debug('ymodem sending : "%s" len:%d', filename, stat.st_size)
                 else:
                     # empty file name packet terminates transmission
