@@ -321,7 +321,7 @@ class XMODEM(object):
                     header_size = 1024
 
                 header = self._make_send_header(header_size, sequence)
-                data = bytearray(data.ljust(header_size, NUL), 'utf-8')
+                data = bytearray(data.ljust(header_size, NUL))
                 checksum = self._make_send_checksum(crc_mode, data)
             else:
                 # happens after sending ymodem empty filename
@@ -336,7 +336,7 @@ class XMODEM(object):
                 total_packets += 1
 
                 header = self._make_send_header(packet_size, sequence)
-                data = bytearray(data.ljust(packet_size, self.pad), 'utf-8')
+                data = bytearray(data.ljust(packet_size, self.pad))
                 checksum = self._make_send_checksum(crc_mode, data)
 
             # emit packet & get ACK
