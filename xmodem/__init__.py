@@ -311,7 +311,7 @@ class XMODEM(object):
                 else:
                     # empty file name packet terminates transmission
                     filename = ''
-                    data = ''
+                    data = bytearray()
                     stream = None
                     self.log.info('Transmission successful.')
                     self.log.debug('ymodem done, sending empty header.')
