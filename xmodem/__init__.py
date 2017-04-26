@@ -345,7 +345,7 @@ class XMODEM(object):
                 self.log.info('header: %s' % type(header))
                 self.log.info('data: %s' % type(data))
                 self.log.info('checksum: %s' % type(checksum))
-                self.putc(header + bytearray(data, 'utf-8') + checksum)
+                self.putc(header + data + checksum)
                 char = self.getc(1, timeout)
                 if char == ACK:
                     success_count += 1
