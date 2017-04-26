@@ -200,6 +200,7 @@ class XMODEM(object):
         self.mode = mode
         self.pad = pad
         self.log = logging.getLogger('xmodem.XMODEM')
+        self.log.addHandler(logging.NullHandler())
 
     def abort(self, count=10, timeout=60):
         '''
@@ -344,7 +345,7 @@ class XMODEM(object):
                 self.log.info('header: %s' % type(header))
                 self.log.info('data: %s' % type(data))
                 self.log.info('checksum: %s' % type(checksum))
-                self.putc(bytearray(header + bytearray(data, 'utf-8') + checksum, 'utf-8'))
+                self.putc(header + bytearray(data, 'utf-8') + checksum)
                 char = self.getc(1, timeout)
                 if char == ACK:
                     success_count += 1
