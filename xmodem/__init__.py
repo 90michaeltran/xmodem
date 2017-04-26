@@ -419,7 +419,7 @@ class XMODEM(object):
         elif packet_size == 1024:
             _bytes.append(ord(STX))
         _bytes.extend([sequence, 0xff - sequence])
-        return bytearray(_bytes, 'utf-8')
+        return bytearray(_bytes)
 
     def _make_send_checksum(self, crc_mode, data):
         _bytes = []
@@ -429,7 +429,7 @@ class XMODEM(object):
         else:
             crc = self.calc_checksum(data)
             _bytes.append(crc)
-        return bytearray(_bytes, 'utf-8')
+        return bytearray(_bytes)
 
     def recv(self, stream, crc_mode=1, retry=16, timeout=60, delay=1, quiet=0):
         '''
