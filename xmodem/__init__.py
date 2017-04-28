@@ -194,11 +194,12 @@ class XMODEM(object):
         0x6e17, 0x7e36, 0x4e55, 0x5e74, 0x2e93, 0x3eb2, 0x0ed1, 0x1ef0,
     ]
 
-    def __init__(self, getc, putc, mode='xmodem', pad=b'\x1a'):
+    def __init__(self, getc, putc, mode='xmodem', pad=b'\x1a', context=None):
         self.getc = getc
         self.putc = putc
         self.mode = mode
         self.pad = pad
+        self.context = context
         self.log = logging.getLogger('xmodem.XMODEM')
         self.log.addHandler(logging.NullHandler())
 
@@ -235,7 +236,7 @@ class XMODEM(object):
                          getting status updates while a xmodem
                          transfer is underway.
                          Expected callback signature:
-                         def callback(total_packets, success_count, error_count)
+                         def callback(total_packets, success_count, error_count, percent_complete=0.0, context=None)
         :type callback: callable
         '''
 
@@ -290,11 +291,15 @@ class XMODEM(object):
         error_count = 0
         success_count = 0
         total_packets = 0
+        percent_complete = 0.0
+        file_size = 0
         if self.mode == 'ymodem':
             sequence = 0
             filenames = stream
         else:
             sequence = 1
+            stat = os.ftstat(fd)
+            file_size = stat.st_size
         while True:
             # build packet
             if self.mode == 'ymodem' and success_count == 0:
@@ -306,6 +311,7 @@ class XMODEM(object):
                     filename = filenames.pop()
                     stream = open(filename, 'rb')
                     stat = os.stat(filename)
+                    file_size = stat.st_size
                     data = bytearray(os.path.basename(filename) + NUL + str(stat.st_size), 'utf-8')
                     self.log.debug('ymodem sending : "%s" len:%d', filename, stat.st_size)
                 else:
@@ -350,7 +356,7 @@ class XMODEM(object):
                 if char == ACK:
                     success_count += 1
                     if callable(callback):
-                        callback(total_packets, success_count, error_count)
+                        callback(total_packets, success_count, error_count, percent_complete, self.context)
                     error_count = 0
                     if self.mode == 'ymodem' and success_count == 1 and len(filename):
                         char = self.getc(1, timeout)
@@ -367,7 +373,7 @@ class XMODEM(object):
                                char, sequence)
                 error_count += 1
                 if callable(callback):
-                    callback(total_packets, success_count, error_count)
+                    callback(total_packets, success_count, error_count, percent_complete, self.context)
                 if error_count > retry:
                     # excessive amounts of retransmissions requested,
                     # abort transfer
