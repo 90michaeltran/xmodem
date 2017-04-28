@@ -117,6 +117,7 @@ __version__ = '0.4.5'
 
 import platform
 import logging
+import math
 import time
 import sys
 from functools import partial
@@ -291,6 +292,7 @@ class XMODEM(object):
         error_count = 0
         success_count = 0
         total_packets = 0
+        expected_packets = 0
         percent_complete = 0.0
         file_size = 0
         if self.mode == 'ymodem':
@@ -300,6 +302,7 @@ class XMODEM(object):
             sequence = 1
             stat = os.ftstat(fd)
             file_size = stat.st_size
+            expected_packets = math.ceil(file_size / packet_size)
         while True:
             # build packet
             if self.mode == 'ymodem' and success_count == 0:
@@ -312,6 +315,7 @@ class XMODEM(object):
                     stream = open(filename, 'rb')
                     stat = os.stat(filename)
                     file_size = stat.st_size
+                    expected_packets = math.ceil(file_size / packet_size)                    
                     data = bytearray(os.path.basename(filename) + NUL + str(stat.st_size), 'utf-8')
                     self.log.debug('ymodem sending : "%s" len:%d', filename, stat.st_size)
                 else:
@@ -355,8 +359,10 @@ class XMODEM(object):
                 char = self.getc(1, timeout)
                 if char == ACK:
                     success_count += 1
+                    if expected_packets:
+                        percent_complete = math.floor(success_count/expected_packets * 100.0)
                     if callable(callback):
-                        callback(total_packets, success_count, error_count, percent_complete, self.context)
+                        callback(total_packets, success_count, error_count, expected_packets, percent_complete, self.context)
                     error_count = 0
                     if self.mode == 'ymodem' and success_count == 1 and len(filename):
                         char = self.getc(1, timeout)
@@ -373,7 +379,7 @@ class XMODEM(object):
                                char, sequence)
                 error_count += 1
                 if callable(callback):
-                    callback(total_packets, success_count, error_count, percent_complete, self.context)
+                    callback(total_packets, success_count, error_count, expected_packets, percent_complete, self.context)
                 if error_count > retry:
                     # excessive amounts of retransmissions requested,
                     # abort transfer
