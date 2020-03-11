@@ -316,7 +316,12 @@ class XMODEM(object):
                     stat = os.stat(filename)
                     file_size = stat.st_size
                     expected_packets = math.ceil(file_size / packet_size)                    
-                    data = bytearray(os.path.basename(filename) + NUL + str(stat.st_size), 'utf-8')
+
+                    try:
+                        data = bytearray(os.path.basename(filename) + NUL + str(stat.st_size), 'utf-8')
+                    except TypeError:
+                        data = bytearray(bytes(os.path.basename(filename), 'utf-8') + NUL + bytes(str(stat.st_size), 'utf-8'))
+
                     self.log.debug('ymodem sending : "%s" len:%d', filename, stat.st_size)
                 else:
                     # empty file name packet terminates transmission
